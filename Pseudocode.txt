@@ -1,0 +1,85 @@
+
+GAME INITIALIZATION
+
+  GameManager (Singleton):
+    IF another GameManager instance exists:
+      Destroy duplicate
+    ELSE:
+      Register this instance
+
+    Set collected count to 0
+    Set game state to Playing
+
+  CollectibleFactory (Factory):
+    FOR each predefined spawn position:
+      Create a Collectible from the prefab
+      Store reference to created Collectible
+
+  GameUI (Observer):
+    Subscribe to GameManager score changes
+    Subscribe to GameManager state changes
+    Display initial score
+    Hide victory message
+
+
+PLAYER MOVEMENT
+
+  WHILE game state is Playing:
+    Read WASD or arrow key input
+    Normalize movement direction
+    Calculate movement using speed and time
+    Keep player within arena boundaries
+    Move player using Rigidbody2D
+
+
+COLLECTIBLE INTERACTION
+
+  WHEN player enters a Collectible trigger:
+    IF collectible has not already been collected:
+      Mark collectible as collected
+      Broadcast OnCollected event
+      Destroy collected object
+
+
+OBSERVER EVENT HANDLING
+
+  GameManager receives OnCollected:
+    IF game state is Playing:
+      Increase collected count
+      Broadcast OnScoreChanged event
+
+    IF collected count reaches 5:
+      Change game state to Won
+      Broadcast OnGameStateChanged event
+
+  GameUI receives OnScoreChanged:
+    Update score text
+
+  GameUI receives OnGameStateChanged:
+    IF game state is Won:
+      Display victory message
+    ELSE:
+      Hide victory message
+
+
+GAME RESTART
+
+  WHEN player presses R:
+    GameManager resets collected count to 0
+    GameManager changes state to Playing
+
+    CollectibleFactory:
+      Destroy remaining collectibles
+      Clear stored references
+      Spawn five new collectibles
+
+    GameManager broadcasts score and state changes
+    GameUI updates score and hides victory message
+
+    Reset player to starting position
+
+
+CLEANUP
+
+  WHEN observer components are destroyed or disabled:
+    Unsubscribe from relevant events
